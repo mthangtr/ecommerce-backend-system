@@ -27,7 +27,6 @@ public class OrderItem {
     @JoinColumn(name = "variant_id", nullable = false)
     private ProductVariant variant;
 
-    // Snapshot data at the time of order
     @Column(name = "product_name", nullable = false)
     private String productName;
 

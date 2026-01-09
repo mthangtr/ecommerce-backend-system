@@ -22,16 +22,10 @@ public class AdminUser {
     private String username;
 
     @Column(name = "password_hash", nullable = false)
-    private String passwordHash; // Bcrypt hash
+    private String passwordHash; 
 
     @Column(name = "full_name")
     private String fullName;
-
-    @Column(length = 50)
-    private String role = "staff"; // 'admin', 'staff', 'warehouse'
-
-    @Column(name = "is_active")
-    private Boolean isActive = true;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
