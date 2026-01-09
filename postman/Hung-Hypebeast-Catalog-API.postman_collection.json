@@ -1,0 +1,381 @@
+{
+	"info": {
+		"name": "Hung Hypebeast E-Commerce API",
+		"description": "API collection for testing Catalog endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?page=0&size=20",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Items per page"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt",
+									"disabled": true,
+									"description": "Sort field: name, price, createdAt"
+								},
+								{
+									"key": "sortDirection",
+									"value": "DESC",
+									"disabled": true,
+									"description": "ASC or DESC"
+								}
+							]
+						},
+						"description": "Get paginated list of all products"
+					}
+				},
+				{
+					"name": "Get Products - Filter by Category (Áo Thun)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?category=ao-thun&page=0&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "category",
+									"value": "ao-thun",
+									"description": "Filter by category: ao-thun, hoodie, quan"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Filter products by category (T-shirts)"
+					}
+				},
+				{
+					"name": "Get Products - Filter by Category (Hoodie)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?category=hoodie&page=0&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "category",
+									"value": "hoodie"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Filter products by category (Hoodies)"
+					}
+				},
+				{
+					"name": "Get Products - Filter by Price Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?minPrice=300000&maxPrice=500000&page=0&size=20",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "minPrice",
+									"value": "300000",
+									"description": "Minimum price in VND"
+								},
+								{
+									"key": "maxPrice",
+									"value": "500000",
+									"description": "Maximum price in VND"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Filter products by price range (300k - 500k VND)"
+					}
+				},
+				{
+					"name": "Get Products - Combined Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?category=hoodie&minPrice=500000&maxPrice=700000&sortBy=price&sortDirection=ASC",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "category",
+									"value": "hoodie"
+								},
+								{
+									"key": "minPrice",
+									"value": "500000"
+								},
+								{
+									"key": "maxPrice",
+									"value": "700000"
+								},
+								{
+									"key": "sortBy",
+									"value": "price"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC"
+								}
+							]
+						},
+						"description": "Combined filters: category + price range + sorting"
+					}
+				},
+				{
+					"name": "Get Products - Sort by Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?sortBy=name&sortDirection=ASC&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Sort products alphabetically by name"
+					}
+				},
+				{
+					"name": "Get Products - Pagination Test (Page 2)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?page=1&size=5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Second page (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "5",
+									"description": "5 items per page"
+								}
+							]
+						},
+						"description": "Test pagination - second page with 5 items"
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products", "1"]
+						},
+						"description": "Get detailed product information including variants by ID"
+					}
+				},
+				{
+					"name": "Get Product by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/slug/ao-thun-rong-den",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products", "slug", "ao-thun-rong-den"]
+						},
+						"description": "Get product details by slug (SEO-friendly URL)"
+					}
+				},
+				{
+					"name": "Get Limited Edition Product (Low Stock)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/9",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products", "9"]
+						},
+						"description": "Get limited edition hoodie with low stock (for testing inventory)"
+					}
+				}
+			],
+			"description": "Product catalog endpoints for browsing and searching products"
+		},
+		{
+			"name": "Error Scenarios",
+			"item": [
+				{
+					"name": "Product Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/999999",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products", "999999"]
+						},
+						"description": "Test error handling for non-existent product"
+					}
+				},
+				{
+					"name": "Invalid Price Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?minPrice=500000&maxPrice=300000",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "minPrice",
+									"value": "500000",
+									"description": "Min price greater than max price"
+								},
+								{
+									"key": "maxPrice",
+									"value": "300000"
+								}
+							]
+						},
+						"description": "Test validation error when min price > max price"
+					}
+				},
+				{
+					"name": "Invalid Pagination (Negative Page)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products?page=-1&size=10",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "page",
+									"value": "-1",
+									"description": "Invalid negative page number"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Test pagination validation error"
+					}
+				},
+				{
+					"name": "Invalid Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/slug/non-existent-product",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "products", "slug", "non-existent-product"]
+						},
+						"description": "Test error handling for non-existent slug"
+					}
+				}
+			],
+			"description": "Test error handling and validation"
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

@@ -17,6 +17,8 @@ Important operational rules:
 
 Code style guidelines:
 - Write clean, readable code that looks natural and human-written.
+- Always response the ResponseObject pattern for REST API responses, encapsulating data, status, and messages.
+- Use CustomerException and ErrorCode to handle exception handling.
 - **Do not add any comments** in the code unless strictly necessary for clarity in complex logic (prefer self-explanatory code).
 - Do not create or suggest new Markdown files, documentation, or explanatory notes outside of direct code changes — I already have full context from previous messages.
 
@@ -24,5 +26,8 @@ When proposing changes:
 - Show only the modified/added files with full paths.
 - Use proper diff format (or clearly indicate new/updated sections).
 - Be concise and focused solely on implementing the requested requirement.
+
+Commands:
+- Generate seed-data: `Get-Content src/main/resources/seed-data.sql | docker exec -i 03d20bbdf899 psql -U hung_admin -d hung_hypebeast_ecommerce`
 
 Stay strictly within scope and follow these rules without exception.
