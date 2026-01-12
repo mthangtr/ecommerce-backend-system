@@ -8,12 +8,13 @@ Technical stack:
 - Spring Boot (targeting compatibility with Spring Boot 3.x, using Java 21)
 - PostgreSQL running in a Docker container ID `03d20bbdf899e38206e4d0f5ae0d9631c00ec32562b1340501d3db0b9062fb44`
 
-Important operational rules:
+Import operational rules:
 - The application is **already running** on a local server. **Never attempt to start, stop, or restart it yourself.**
 - If a code change requires a restart to take effect, explicitly tell me: "Please restart the Spring Boot application to apply these changes."
 - Before considering a task complete, always run `./mvn clean compile` locally and confirm there are no compilation errors. If there are errors, fix them first.
 - To execute any Maven command, the environment must be set as follows:
   `$env:JAVA_HOME = "C:\Users\tmtmt\.jdks\openjdk-21.0.1"`
+- **Strictly Minimal Implementation**: Only implement what is explicitly requested. Do not add "extra" or "helper" functions (like `getBySlug` if only `getById` is asked) even if you think they might be useful later. Unused code is technical debt.
 
 Code style guidelines:
 - Write clean, readable code that looks natural and human-written.
@@ -26,6 +27,7 @@ When proposing changes:
 - Show only the modified/added files with full paths.
 - Use proper diff format (or clearly indicate new/updated sections).
 - Be concise and focused solely on implementing the requested requirement.
+- **No speculative coding**: Only write code that is directly called or required by the current task. Do not pre-emptively add methods for future use cases.
 
 Commands:
 - Generate seed-data: `Get-Content src/main/resources/seed-data.sql | docker exec -i 03d20bbdf899 psql -U hung_admin -d hung_hypebeast_ecommerce`

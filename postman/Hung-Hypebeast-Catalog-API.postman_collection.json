@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Hung Hypebeast E-Commerce API",
-		"description": "API collection for testing Catalog endpoints",
+		"description": "API collection for testing Catalog and Cart endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -250,21 +250,6 @@
 					}
 				},
 				{
-					"name": "Get Product by Slug",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products/slug/ao-thun-rong-den",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products", "slug", "ao-thun-rong-den"]
-						},
-						"description": "Get product details by slug (SEO-friendly URL)"
-					}
-				},
-				{
 					"name": "Get Limited Edition Product (Low Stock)",
 					"request": {
 						"method": "GET",
@@ -281,6 +266,138 @@
 				}
 			],
 			"description": "Product catalog endpoints for browsing and searching products"
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123",
+								"description": "Session ID to identify the cart"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/cart",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart"]
+						},
+						"description": "Get current cart contents. Creates a new cart if not exists."
+					}
+				},
+				{
+					"name": "Add Item to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123",
+								"description": "Session ID to identify the cart"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variantId\": 1,\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items"]
+						},
+						"description": "Add a product variant to cart. Validates stock availability."
+					}
+				},
+				{
+					"name": "Add Another Item (Hoodie)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variantId\": 25,\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items"]
+						},
+						"description": "Add Hoodie Black Dragon to cart"
+					}
+				},
+				{
+					"name": "Update Cart Item Quantity",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 5\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items", "1"]
+						},
+						"description": "Update quantity of cart item. Validates stock availability."
+					}
+				},
+				{
+					"name": "Remove Item from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items", "1"]
+						},
+						"description": "Remove an item from the cart"
+					}
+				}
+			],
+			"description": "Shopping cart endpoints"
 		},
 		{
 			"name": "Error Scenarios",
@@ -353,18 +470,107 @@
 					}
 				},
 				{
-					"name": "Invalid Slug",
+					"name": "Cart - Insufficient Stock",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variantId\": 36,\n    \"quantity\": 100\n}"
+						},
 						"url": {
-							"raw": "http://localhost:8080/api/products/slug/non-existent-product",
+							"raw": "http://localhost:8080/api/cart/items",
 							"protocol": "http",
 							"host": ["localhost"],
 							"port": "8080",
-							"path": ["api", "products", "slug", "non-existent-product"]
+							"path": ["api", "cart", "items"]
 						},
-						"description": "Test error handling for non-existent slug"
+						"description": "Test adding more items than available stock (Limited Edition Hoodie has only 3 in stock)"
+					}
+				},
+				{
+					"name": "Cart - Variant Not Found",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variantId\": 99999,\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items"]
+						},
+						"description": "Test adding non-existent variant to cart"
+					}
+				},
+				{
+					"name": "Cart - Invalid Input",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"variantId\": 1,\n    \"quantity\": 0\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items"]
+						},
+						"description": "Test invalid quantity (must be >= 1)"
+					}
+				},
+				{
+					"name": "Cart Item Not Found",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "test-session-123"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/cart/items/99999",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "cart", "items", "99999"]
+						},
+						"description": "Test deleting non-existent cart item"
 					}
 				}
 			],
