@@ -6,14 +6,14 @@ This document represents the customer's exact expectations. **Do not add, sugges
 
 Technical stack:
 - Spring Boot (targeting compatibility with Spring Boot 3.x, using Java 21)
-- PostgreSQL running in a Docker container ID `03d20bbdf899e38206e4d0f5ae0d9631c00ec32562b1340501d3db0b9062fb44`
+- PostgreSQL running in a Docker container ID `d9dcb3f9c888790b727ed2d7cbba1737e0a54c64b11a5c25403b16afb13e0f85`
 
 Import operational rules:
 - The application is **already running** on a local server. **Never attempt to start, stop, or restart it yourself.**
 - If a code change requires a restart to take effect, explicitly tell me: "Please restart the Spring Boot application to apply these changes."
 - Before considering a task complete, always run `./mvn clean compile` locally and confirm there are no compilation errors. If there are errors, fix them first.
 - To execute any Maven command, the environment must be set as follows:
-  `$env:JAVA_HOME = "C:\Users\tmtmt\.jdks\openjdk-21.0.1"`
+  `$env:JAVA_HOME = "C:\Users\tmtmt\.jdks\openjdk-21.0.1"` or `set "JAVA_HOME=C:\Users\tmtmt\.jdks\openjdk-21.0.1" && mvnw.cmd clean compile`
 - **Strictly Minimal Implementation**: Only implement what is explicitly requested. Do not add "extra" or "helper" functions (like `getBySlug` if only `getById` is asked) even if you think they might be useful later. Unused code is technical debt.
 
 Code style guidelines:
