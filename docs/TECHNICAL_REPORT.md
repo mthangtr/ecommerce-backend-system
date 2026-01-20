@@ -247,36 +247,7 @@
 
 #### 2.2.2. Sequence Diagrams
 
-**Diagram 1: Inventory Reservation (Giữ hàng khi bắt đầu checkout)**
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as Frontend
-    participant API as CheckoutController
-    participant ResSvc as ReservationService
-    participant DB as Database
-    participant Scheduler
-    
-    User->>FE: Bấm "Thanh toán"
-    FE->>API: POST /checkout/reserve (X-Session-Id)
-    API->>ResSvc: reserveInventory(sessionId)
-    ResSvc->>DB: lock variant rows
-    alt Đủ hàng
-        ResSvc->>DB: tăng reserved + tạo reservation (expiresAt)
-        API-->>FE: ReservationDTO
-    else Thiếu hàng
-        API-->>FE: 400 INSUFFICIENT_STOCK
-    end
-    
-    Note over Scheduler: Chạy định kỳ, nhả reservation hết hạn
-    Scheduler->>ResSvc: releaseExpiredReservations()
-    ResSvc->>DB: giảm reserved + set expired
-```
-
----
-
-**Diagram 2: Checkout (Tạo đơn hàng từ reservation)**
+**Diagram 1: Inventory Reservation & Checkout**
 
 ```mermaid
 sequenceDiagram
@@ -287,6 +258,24 @@ sequenceDiagram
     participant OrderSvc as OrderService
     participant Mail as EmailService
     participant DB as Database
+    participant Scheduler
+    
+    User->>FE: Bấm "Thanh toán"
+    FE->>API: POST /checkout/reserve
+    API->>ResSvc: reserveInventory(sessionId)
+    ResSvc->>DB: lock + reserve
+    alt Đủ hàng
+        ResSvc->>DB: tạo reservation (expiresAt)
+        API-->>FE: ReservationDTO
+        FE-->>User: Hiển thị giữ hàng thành công
+    else Thiếu hàng
+        API-->>FE: 400 INSUFFICIENT_STOCK
+        FE-->>User: Hiển thị hết hàng
+    end
+    
+    Note over Scheduler: Chạy định kỳ, nhả reservation hết hạn
+    Scheduler->>ResSvc: releaseExpiredReservations()
+    ResSvc->>DB: giảm reserved + set expired
     
     User->>FE: Bấm "Đặt hàng"
     FE->>API: POST /checkout/order
@@ -297,8 +286,10 @@ sequenceDiagram
         ResSvc->>DB: giảm stock + reserved, set completed
         OrderSvc->>Mail: gửi email xác nhận + link tracking
         API-->>FE: OrderDTO + tracking
+        FE-->>User: Hiển thị xác nhận đơn hàng
     else Reservation hết hạn
         API-->>FE: 400 RESERVATION_EXPIRED
+        FE-->>User: Hiển thị reservation hết hạn
     end
 ```
 
