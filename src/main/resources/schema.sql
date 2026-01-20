@@ -217,7 +217,7 @@ CREATE TABLE admin_users (
                              last_login_at TIMESTAMP
 );
 
-CREATE INDEX idx_admin_username ON admin_users(username) WHERE is_active = true;
+CREATE INDEX idx_admin_username ON admin_users(username);
 
 -- ============================================
 -- TRIGGERS & FUNCTIONS

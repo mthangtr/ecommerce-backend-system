@@ -52,6 +52,10 @@ public class OrderService {
         order.setCustomerNote(customerNote);
         order.setStatus("pending");
         order.setPaymentStatus("pending");
+        if ("COD".equalsIgnoreCase(paymentMethod)) {
+            order.setPaymentStatus("paid");
+            order.setPaidAt(LocalDateTime.now());
+        }
 
         BigDecimal subtotal = BigDecimal.ZERO;
 

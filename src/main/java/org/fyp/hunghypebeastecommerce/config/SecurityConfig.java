@@ -17,15 +17,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/cart/**").permitAll()
                 .requestMatchers("/api/checkout/**").permitAll()
                 .requestMatchers("/api/orders/track/**").permitAll()
-                .requestMatchers("/api/orders/checkout").permitAll()
-                .requestMatchers("/api/admin/**").authenticated()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/admin/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").permitAll()
+                .anyRequest().permitAll()
             );
 
         return http.build();

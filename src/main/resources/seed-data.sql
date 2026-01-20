@@ -139,8 +139,8 @@ INSERT INTO product_variants (product_id, sku, size, color, price_adjustment, st
 
 -- Password: admin123 (BCrypt hash)
 INSERT INTO admin_users (username, password_hash, full_name, created_at) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Anh Hùng - Admin', CURRENT_TIMESTAMP),
-('warehouse', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Nhân Viên Kho', CURRENT_TIMESTAMP);
+('admin', '$2a$12$mqSCydGOyidg8UuwOJL6ROZjsAfluEilRV8Di./ykpfLxqG91xq7m', 'Anh Hùng - Admin', CURRENT_TIMESTAMP),
+('warehouse', '$2a$12$mqSCydGOyidg8UuwOJL6ROZjsAfluEilRV8Di./ykpfLxqG91xq7m', 'Nhân Viên Kho', CURRENT_TIMESTAMP);
 
 -- ============================================
 -- SUMMARY
