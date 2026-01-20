@@ -1,4 +1,4 @@
-# Hung Hypebeast E-commerce Backend
+# E-commerce Backend System
 
 Backend API cho hệ thống e-commerce "Hung Hypebeast", tập trung vào:
 Catalog & SKU, Shopping Cart, Inventory Reservation, Checkout (COD), Tracking đơn hàng,
