@@ -162,6 +162,29 @@ public class OrderService {
         };
     }
 
+    @Transactional
+    public Order updatePaymentStatus(Long orderId, String status, String transactionId, String gatewayResponse) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        if ("paid".equals(order.getPaymentStatus())) {
+            throw new CustomException(ErrorCode.ORDER_ALREADY_PAID);
+        }
+
+        order.setPaymentStatus(status);
+        if ("paid".equals(status) && order.getPaidAt() == null) {
+            order.setPaidAt(LocalDateTime.now());
+        }
+
+        return orderRepository.save(order);
+    }
+
+    @Transactional(readOnly = true)
+    public Order getOrderByOrderNumber(String orderNumber) {
+        return orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
     private String generateOrderNumber() {
         return "ORD-" + System.currentTimeMillis();
     }
