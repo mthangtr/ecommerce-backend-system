@@ -6,21 +6,21 @@
 
 #### Must-have (Phải làm trong 2 tuần)
 
-| Tính năng | Mô tả | Trạng thái |
-|-----------|-------|------------|
-| **Catalog & SKU** | Quản lý sản phẩm với biến thể (size, màu sắc), hiển thị danh sách phân trang, lọc theo category và khoảng giá |  Hoàn thành |
-| **Shopping Cart** | Thêm/sửa/xóa sản phẩm, kiểm tra tồn kho trước khi thêm vào giỏ |  Hoàn thành |
-| **Inventory Reservation** | Giữ hàng 10-15 phút khi checkout, xử lý "last item" với database lock |  Hoàn thành |
-| **Checkout Flow** | Tạo đơn hàng với thông tin ship, hỗ trợ COD và SePay |  Hoàn thành |
-| **Order Tracking** | Tracking đơn hàng qua link không cần đăng nhập, gửi email xác nhận |  Hoàn thành |
-| **Admin Order Management** | Xem danh sách đơn hàng, cập nhật trạng thái đơn và thanh toán |  Hoàn thành |
+| Tính năng | Mô tả | Ghi chú |
+|-----------|-------|---------|
+| **Catalog & SKU** | Quản lý sản phẩm với biến thể (size, màu sắc), hiển thị danh sách phân trang, lọc theo category và khoảng giá | Trong scope Phase 1 |
+| **Shopping Cart** | Thêm/sửa/xóa sản phẩm, kiểm tra tồn kho trước khi thêm vào giỏ | Trong scope Phase 1 |
+| **Inventory Reservation** | Giữ hàng 10-15 phút khi checkout, xử lý "last item" với database lock | Trong scope Phase 1 |
+| **Checkout Flow** | Tạo đơn hàng với thông tin ship, hỗ trợ COD | Trong scope Phase 1 |
+| **Order Tracking** | Tracking đơn hàng qua link không cần đăng nhập, gửi email xác nhận | Trong scope Phase 1 |
+| **Admin Order Management** | Xem danh sách đơn hàng, cập nhật trạng thái đơn và thanh toán | Trong scope Phase 1 |
 
 #### Nice-to-have (Không bắt buộc trong Phase 1)
 
 | Tính năng | Mô tả | Quyết định |
 |-----------|-------|------------|
-| **SePay Webhook Integration** | Tự động cập nhật trạng thái thanh toán khi nhận webhook |  Đã làm |
-| **Admin Catalog CRUD** | API tạo/sửa/xóa sản phẩm |  Bỏ qua (theo yêu cầu khách hàng - "chưa cần làm phần nhập liệu sản phẩm") |
+| **SePay Webhook Integration** | Tự động cập nhật trạng thái thanh toán khi nhận webhook | Tùy thời gian, có thể để phase sau |
+| **Admin Catalog CRUD** | API tạo/sửa/xóa sản phẩm | Bỏ qua (theo yêu cầu khách hàng - "chưa cần làm phần nhập liệu sản phẩm") |
 
 ### 1.2. Gap Analysis
 
@@ -30,7 +30,7 @@
 |-------------------|---------------------|---------------------|
 | "Giữ hàng 10-15 phút, người khác không mua được" | Race condition khi 2 người checkout cùng lúc cái cuối cùng | Pessimistic Lock (`findByIdWithLock`) + `reserved_quantity` tracking |
 | "Hết giờ không trả tiền thì nhả ra" | Cần cơ chế tự động giải phóng reservation | Spring Scheduler chạy mỗi 1 phút, quét reservation hết hạn |
-| "SePay tự động biết đơn nào đã trả tiền" | Webhook validation, xử lý duplicate, so khớp số tiền | Webhook endpoint với API key verification, idempotency check |
+| "SePay tự động biết đơn nào đã trả tiền" | Webhook validation, xử lý duplicate, so khớp số tiền | Tách thành optional: giả lập webhook hoặc xử lý thủ công ở Phase 1 |
 | "Đừng bắt khách đăng nhập để xem đơn" | Bảo mật tracking token | UUID token trong URL, không lưu session |
 
 #### Quyết định thiết kế quan trọng
@@ -58,32 +58,26 @@
 
 ### 1.3. Đánh giá Khả năng Hoàn thiện
 
-#### Cam kết: 100% yêu cầu Must-have
+#### Cam kết: 95% yêu cầu Must-have
 
-**Các tính năng đã hoàn thiện:**
--  Catalog với pagination, filtering, sorting
--  Cart với stock validation
--  Inventory reservation với pessimistic lock
--  Checkout flow (COD + SePay)
--  Email notification với tracking link
--  Admin order management
--  SePay webhook integration
+**Phạm vi cam kết:**
+- Catalog với pagination, filtering, sorting
+- Cart với stock validation
+- Inventory reservation với pessimistic lock
+- Checkout flow (COD)
+- Email notification với tracking link
+- Admin order management
 
-**Giả lập vs Production-ready:**
-
-| Thành phần | Trạng thái | Ghi chú |
-|-----------|-----------|---------|
-| Database Lock |  Production-ready | Pessimistic lock trong transaction |
-| Scheduler |  Production-ready | Spring @Scheduled với configurable interval |
-| Email Service |  Production-ready | Đã cấu hình SMTP Gmail, tích hợp dotenv-java, test thành công |
-| SePay Integration |  Sandbox-ready | Test với SePay sandbox, sẵn sàng production |
+**Phần có thể cắt giảm nếu thiếu thời gian:**
+- SePay webhook integration (đưa sang phase sau hoặc giả lập webhook)
+- Admin auth nâng cao (giới hạn ở mức bảo vệ endpoint cơ bản)
 
 **Rủi ro & Mitigation:**
 
 | Rủi ro | Mức độ | Giải pháp dự phòng |
 |--------|--------|-------------------|
 | Scheduler trễ 1 phút mới nhả hàng | Thấp | Acceptable - reservation 15 phút, trễ 1 phút không ảnh hưởng UX |
-| Email gửi chậm/failed | Thấp | Đã cấu hình SMTP production, có error handling và logging. Nếu failed, admin có thể resend hoặc liên hệ manual |
+| Email gửi chậm/failed | Thấp | Retry theo cấu hình SMTP; nếu failed, xử lý thủ công |
 | Database connection pool exhausted khi traffic cao | Cao | Cần load testing, tune connection pool size |
 
 ---
@@ -308,101 +302,30 @@ sequenceDiagram
     participant Scheduler
     
     User->>FE: Bấm "Thanh toán"
-    FE->>API: POST /checkout/reserve<br/>(X-Session-Id)
-    
-    activate API
+    FE->>API: POST /checkout/reserve (X-Session-Id)
     API->>ResSvc: reserveInventory(sessionId)
-    activate ResSvc
-    
-    Note over ResSvc: Bước 1: Hủy reservation cũ (nếu có)
-    ResSvc->>DB: findBySessionIdAndStatus(sessionId, "active")
-    DB-->>ResSvc: List<Reservation>
-    
-    loop Mỗi reservation cũ
-        ResSvc->>DB: findByIdWithLock(variantId)<br/>[PESSIMISTIC_WRITE]
-        DB-->>ResSvc: ProductVariant (locked)
-        ResSvc->>DB: reserved_quantity -= quantity
-        ResSvc->>DB: reservation.status = "cancelled"
+    ResSvc->>DB: lock variant rows
+    alt Đủ hàng
+        ResSvc->>DB: tăng reserved + tạo reservation (expiresAt)
+        API-->>FE: ReservationDTO
+    else Thiếu hàng
+        API-->>FE: 400 INSUFFICIENT_STOCK
     end
     
-    Note over ResSvc: Bước 2: Tạo reservation mới
-    ResSvc->>DB: findBySessionId(sessionId)
-    DB-->>ResSvc: Cart with items
+    Note over Scheduler: Chạy định kỳ, nhả reservation hết hạn
+    Scheduler->>ResSvc: releaseExpiredReservations()
+    ResSvc->>DB: giảm reserved + set expired
     
-    loop Mỗi cart item
-        ResSvc->>DB: findByIdWithLock(variantId)<br/>[PESSIMISTIC_WRITE]
-        DB-->>ResSvc: ProductVariant (locked)
-        
-        ResSvc->>ResSvc: available = stock - reserved
-        
-        alt available >= quantity
-            ResSvc->>DB: reserved_quantity += quantity
-            ResSvc->>DB: INSERT reservation<br/>(expires_at = now + 15 min)
-        else insufficient stock
-            ResSvc->>ResSvc: rollbackReservations()
-            ResSvc-->>API: throw INSUFFICIENT_STOCK
-            API-->>FE: 400 "Sản phẩm X không đủ hàng"
-        end
-    end
-    
-    ResSvc-->>API: ReservationDTO<br/>(expiresAt, remainingSeconds)
-    deactivate ResSvc
-    API-->>FE: 200 OK
-    deactivate API
-    
-    FE->>User: "Đã giữ hàng 15 phút.<br/>Còn 14:59..."
-    
-    Note over Scheduler: Chạy mỗi 1 phút
-    
-    loop Mỗi 60 giây
-        Scheduler->>DB: SELECT * FROM reservations<br/>WHERE status='active'<br/>AND expires_at < NOW()
-        DB-->>Scheduler: List<ExpiredReservation>
-        
-        loop Mỗi expired reservation
-            Scheduler->>DB: findByIdWithLock(variantId)
-            DB-->>Scheduler: ProductVariant (locked)
-            Scheduler->>DB: reserved_quantity -= quantity
-            Scheduler->>DB: reservation.status = "expired"
-        end
-    end
-    
-    User->>FE: Điền thông tin & bấm "Đặt hàng"
-    FE->>API: POST /checkout/order<br/>{customerName, address, ...}
-    
-    activate API
+    User->>FE: Bấm "Đặt hàng"
+    FE->>API: POST /checkout/order
     API->>ResSvc: getActiveReservation(sessionId)
-    ResSvc-->>API: ReservationDTO (hoặc null nếu hết hạn)
-    
     alt Reservation còn hiệu lực
-        API->>DB: BEGIN TRANSACTION
-        API->>DB: INSERT INTO orders
-        API->>DB: INSERT INTO order_items
-        
-        API->>ResSvc: completeReservation(sessionId, orderId)
-        activate ResSvc
-        loop Mỗi reservation
-            ResSvc->>DB: findByIdWithLock(variantId)
-            ResSvc->>DB: stock_quantity -= quantity<br/>reserved_quantity -= quantity
-            ResSvc->>DB: reservation.status = "completed"
-        end
-        deactivate ResSvc
-        
-        API->>DB: DELETE FROM carts WHERE session_id = ?
-        API->>DB: COMMIT
-        
-        alt Payment = COD
-            API->>EmailService: sendOrderConfirmation(order)
-        else Payment = SEPAY
-            API->>DB: INSERT payment_transaction<br/>(status="pending")
-        end
-        
-        API-->>FE: 200 OK + OrderDTO<br/>(tracking_token, sepay_info)
-        FE->>User: "Đơn hàng ORD-xxx đã tạo"
+        API->>DB: create order + order_items
+        ResSvc->>DB: giảm stock + reserved, set completed
+        API-->>FE: OrderDTO + tracking
     else Reservation hết hạn
-        API-->>FE: 400 "Reservation expired"
-        FE->>User: "Hết thời gian giữ hàng.<br/>Vui lòng thêm lại giỏ hàng."
+        API-->>FE: 400 RESERVATION_EXPIRED
     end
-    deactivate API
 ```
 
 ---
@@ -414,96 +337,22 @@ sequenceDiagram
     actor User
     participant SePay as SePay Gateway
     participant Webhook as WebhookController
-    participant SvcWH as SepayWebhookService
     participant OrderSvc as OrderService
     participant DB as Database
     participant Email as EmailService
     
-    User->>User: Chuyển khoản ngân hàng<br/>Nội dung: "Thanh toan don hang ORD-123456"
-    
-    SePay->>SePay: Nhận giao dịch từ bank
-    SePay->>Webhook: POST /api/sepay/webhook<br/>Header: X-API-Key<br/>Body: {id, transferAmount, content, ...}
-    
-    activate Webhook
-    Webhook->>SvcWH: processWebhook(payload, apiKey)
-    activate SvcWH
-    
-    Note over SvcWH: Bước 1: Verify API Key
-    SvcWH->>SvcWH: verifyApiKey(apiKey)
-    alt API Key không hợp lệ
-        SvcWH-->>Webhook: throw INVALID_WEBHOOK_SIGNATURE
-        Webhook-->>SePay: 200 OK (vẫn trả 200 để SePay không retry)
-    end
-    
-    Note over SvcWH: Bước 2: Check loại giao dịch
-    alt transferType != "in"
-        SvcWH->>SvcWH: log.warn("Non-incoming transaction")
-        SvcWH-->>Webhook: return (bỏ qua)
-    end
-    
-    Note over SvcWH: Bước 3: Idempotency check
-    SvcWH->>DB: findByTransactionId(payload.id)
-    DB-->>SvcWH: Optional<PaymentTransaction>
-    
-    alt Transaction đã tồn tại
-        SvcWH-->>Webhook: throw DUPLICATE_TRANSACTION
+    User->>SePay: Chuyển khoản (nội dung có order number)
+    SePay->>Webhook: POST /api/sepay/webhook
+    Webhook->>OrderSvc: validate + parse order number
+    OrderSvc->>DB: find order + check amount
+    alt Hợp lệ
+        OrderSvc->>DB: save transaction + mark paid
+        OrderSvc->>Email: send confirmation
         Webhook-->>SePay: 200 OK
+    else Không hợp lệ
+        Webhook-->>SePay: 200 OK (ignore)
     end
-    
-    Note over SvcWH: Bước 4: Extract order number
-    SvcWH->>SvcWH: extractOrderNumber(payload.content)<br/>Regex: (ORD-\d+)
-    
-    alt Không tìm thấy order number
-        SvcWH-->>Webhook: throw ORDER_NUMBER_NOT_FOUND
-        Webhook-->>SePay: 200 OK
-    end
-    
-    SvcWH->>OrderSvc: getOrderByOrderNumber("ORD-123456")
-    OrderSvc->>DB: SELECT * FROM orders WHERE order_number = ?
-    
-    alt Order không tồn tại
-        DB-->>OrderSvc: null
-        OrderSvc-->>SvcWH: throw ORDER_NOT_FOUND
-    end
-    
-    DB-->>OrderSvc: Order
-    OrderSvc-->>SvcWH: Order
-    
-    Note over SvcWH: Bước 5: Verify số tiền
-    SvcWH->>SvcWH: verifyPaymentAmount(order, payload.transferAmount)
-    
-    alt Số tiền không khớp
-        SvcWH-->>Webhook: throw PAYMENT_AMOUNT_MISMATCH
-    end
-    
-    Note over SvcWH: Bước 6: Check đã thanh toán chưa
-    alt order.paymentStatus == "paid"
-        SvcWH-->>Webhook: throw ORDER_ALREADY_PAID
-    end
-    
-    Note over SvcWH: Bước 7: Lưu transaction & update order
-    SvcWH->>DB: BEGIN TRANSACTION
-    SvcWH->>DB: INSERT INTO payment_transactions<br/>(order_id, transaction_id,<br/>amount, status="success")
-    
-    SvcWH->>OrderSvc: updatePaymentStatus(orderId, "paid", ...)
-    OrderSvc->>DB: UPDATE orders SET<br/>payment_status="paid",<br/>paid_at=NOW()
-    
-    SvcWH->>DB: COMMIT
-    
-    Note over SvcWH: Bước 8: Gửi email xác nhận
-    SvcWH->>Email: sendOrderConfirmation(order)
-    activate Email
-    Email->>Email: Build email body<br/>+ tracking link
-    Email->>User: Email "Order Confirmation - ORD-123456"<br/>Track: https://app.com/track/{uuid}
-    deactivate Email
-    
-    SvcWH-->>Webhook: void (success)
-    deactivate SvcWH
-    
-    Webhook-->>SePay: 200 OK
-    deactivate Webhook
-    
-    SePay->>SePay: Đánh dấu webhook delivered ```
+```
 
 ---
 
@@ -517,42 +366,16 @@ sequenceDiagram
     participant CartSvc as CartService
     participant DB as Database
     
-    User->>FE: Chọn "Áo Rồng - Size L - Đen"<br/>Số lượng: 3
-    FE->>API: POST /api/cart/items<br/>{variantId: 42, quantity: 3}
-    
-    activate API
+    User->>FE: Thêm vào giỏ hàng
+    FE->>API: POST /api/cart/items
     API->>CartSvc: addToCart(sessionId, request)
-    activate CartSvc
-    
-    CartSvc->>DB: findBySessionId(sessionId)
-    DB-->>CartSvc: Cart (hoặc tạo mới)
-    
-    CartSvc->>DB: findById(variantId=42)
-    DB-->>CartSvc: ProductVariant<br/>(stock=5, reserved=2)
-    
-    Note over CartSvc: Available = stock - reserved = 3
-    
-    CartSvc->>DB: findByCartAndVariant(cart, variant)
-    DB-->>CartSvc: Existing CartItem (quantity=1)<br/>hoặc null
-    
-    alt Item đã có trong giỏ
-        CartSvc->>CartSvc: requestedTotal = 1 + 3 = 4
-    else Item mới
-        CartSvc->>CartSvc: requestedTotal = 3
-    end
-    
-    alt requestedTotal > available (4 > 3)
-        CartSvc-->>API: throw INSUFFICIENT_STOCK
-        API-->>FE: 400 "Chỉ còn 3 sản phẩm"
-        FE->>User: "Rất tiếc, Size L - Đen chỉ còn 3 cái.<br/>Bạn đã có 1 trong giỏ."
-    else requestedTotal <= available
-        CartSvc->>DB: UPDATE cart_items SET quantity = 4<br/>hoặc INSERT cart_items
-        CartSvc->>DB: UPDATE carts SET updated_at = NOW()
-        CartSvc-->>API: CartDTO (updated)
-        deactivate CartSvc
-        API-->>FE: 200 OK
-        deactivate API
-        FE->>User: "Đã thêm vào giỏ hàng "
+    CartSvc->>DB: load cart + variant
+    CartSvc->>CartSvc: available = stock - reserved
+    alt Đủ hàng
+        CartSvc->>DB: upsert cart item
+        API-->>FE: CartDTO
+    else Thiếu hàng
+        API-->>FE: 400 INSUFFICIENT_STOCK
     end
 ```
 
@@ -616,9 +439,9 @@ orderItem.setVariantSku(variant.getSku());
 
 | Thành phần | Hoàn thành | Ghi chú |
 |-----------|-----------|---------|
-| Must-have features | **95%** | Catalog, Cart, Inventory, Checkout, Tracking, Admin |
-| Nice-to-have (SePay) | **100%** | Webhook integration production-ready |
+| Must-have features | **95%** | Catalog, Cart, Inventory, Checkout (COD), Tracking, Admin |
+| Nice-to-have (SePay) | **Tuỳ thời gian** | Webhook integration có thể để phase sau |
 | Database design | **100%** | ERD 9 bảng, index optimization |
-| API endpoints | **100%** | 18 APIs (13 public + 5 admin) |
-| Email Service | **100%** | SMTP Gmail production-ready, dotenv integration, tested |
+| API endpoints | **100%** | 18 APIs (11 public + 6 admin + 1 webhook) |
+| Email Service | **100%** | SMTP Gmail, gửi tracking link |
 | Technical docs | **100%** | Report này + sequence diagrams |
