@@ -55,10 +55,6 @@ public class OrderService {
         order.setCustomerNote(customerNote);
         order.setStatus("pending");
         order.setPaymentStatus("pending");
-        if ("COD".equalsIgnoreCase(paymentMethod)) {
-            order.setPaymentStatus("paid");
-            order.setPaidAt(LocalDateTime.now());
-        }
 
         BigDecimal subtotal = BigDecimal.ZERO;
 
@@ -166,6 +162,10 @@ public class OrderService {
     public Order updatePaymentStatus(Long orderId, String status, String transactionId, String gatewayResponse) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (status == null || status.isBlank()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
 
         if ("paid".equals(order.getPaymentStatus())) {
             throw new CustomException(ErrorCode.ORDER_ALREADY_PAID);

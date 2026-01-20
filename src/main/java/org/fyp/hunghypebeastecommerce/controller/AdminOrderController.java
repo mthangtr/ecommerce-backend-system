@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.fyp.hunghypebeastecommerce.dto.ResponseObject;
 import org.fyp.hunghypebeastecommerce.dto.admin.OrderListItemDTO;
 import org.fyp.hunghypebeastecommerce.dto.admin.UpdateOrderStatusRequest;
+import org.fyp.hunghypebeastecommerce.dto.admin.UpdatePaymentStatusRequest;
 import org.fyp.hunghypebeastecommerce.dto.checkout.OrderDTO;
 import org.fyp.hunghypebeastecommerce.dto.checkout.OrderItemDTO;
 import org.fyp.hunghypebeastecommerce.entity.Order;
@@ -80,6 +81,22 @@ public class AdminOrderController {
         Order updatedOrder = orderService.updateOrderStatus(orderId, request.getStatus(), request.getAdminNote(), changedBy);
         OrderDTO orderDTO = mapToOrderDTO(updatedOrder);
         return ResponseEntity.ok(ResponseObject.success("Order status updated successfully", orderDTO));
+    }
+
+    @PatchMapping("/{orderId}/payment-status")
+    public ResponseEntity<ResponseObject<OrderDTO>> updatePaymentStatus(
+            @PathVariable Long orderId,
+            @RequestBody UpdatePaymentStatusRequest request,
+            HttpSession session
+    ) {
+        Long adminId = (Long) session.getAttribute("adminId");
+        if (adminId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+
+        Order updatedOrder = orderService.updatePaymentStatus(orderId, request.getPaymentStatus(), null, null);
+        OrderDTO orderDTO = mapToOrderDTO(updatedOrder);
+        return ResponseEntity.ok(ResponseObject.success("Payment status updated successfully", orderDTO));
     }
 
     private OrderListItemDTO mapToOrderListItem(Order order) {
