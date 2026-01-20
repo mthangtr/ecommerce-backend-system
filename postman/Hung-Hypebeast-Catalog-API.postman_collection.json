@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Hung Hypebeast E-Commerce API",
-		"description": "API collection for testing Catalog and Cart endpoints",
+		"description": "Complete API collection for Hung Hypebeast E-Commerce - Catalog, Cart, Checkout, Order Tracking, and Admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -14,10 +14,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products?page=0&size=20",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products?page=0&size=20",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products"],
 							"query": [
 								{
@@ -53,10 +51,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products?category=ao-thun&page=0&size=10",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products?category=ao-thun&page=0&size=10",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products"],
 							"query": [
 								{
@@ -83,10 +79,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products?category=hoodie&page=0&size=10",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products?category=hoodie&page=0&size=10",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products"],
 							"query": [
 								{
@@ -112,10 +106,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products?minPrice=300000&maxPrice=500000&page=0&size=20",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products?minPrice=300000&maxPrice=500000&page=0&size=20",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products"],
 							"query": [
 								{
@@ -142,108 +134,13 @@
 					}
 				},
 				{
-					"name": "Get Products - Combined Filters",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products?category=hoodie&minPrice=500000&maxPrice=700000&sortBy=price&sortDirection=ASC",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products"],
-							"query": [
-								{
-									"key": "category",
-									"value": "hoodie"
-								},
-								{
-									"key": "minPrice",
-									"value": "500000"
-								},
-								{
-									"key": "maxPrice",
-									"value": "700000"
-								},
-								{
-									"key": "sortBy",
-									"value": "price"
-								},
-								{
-									"key": "sortDirection",
-									"value": "ASC"
-								}
-							]
-						},
-						"description": "Combined filters: category + price range + sorting"
-					}
-				},
-				{
-					"name": "Get Products - Sort by Name",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products?sortBy=name&sortDirection=ASC&size=10",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products"],
-							"query": [
-								{
-									"key": "sortBy",
-									"value": "name"
-								},
-								{
-									"key": "sortDirection",
-									"value": "ASC"
-								},
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						},
-						"description": "Sort products alphabetically by name"
-					}
-				},
-				{
-					"name": "Get Products - Pagination Test (Page 2)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products?page=1&size=5",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Second page (0-indexed)"
-								},
-								{
-									"key": "size",
-									"value": "5",
-									"description": "5 items per page"
-								}
-							]
-						},
-						"description": "Test pagination - second page with 5 items"
-					}
-				},
-				{
 					"name": "Get Product by ID",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products/1",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products", "1"]
 						},
 						"description": "Get detailed product information including variants by ID"
@@ -255,10 +152,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products/9",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products/9",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products", "9"]
 						},
 						"description": "Get limited edition hoodie with low stock (for testing inventory)"
@@ -277,15 +172,13 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123",
+								"value": "{{sessionId}}",
 								"description": "Session ID to identify the cart"
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/cart",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart"]
 						},
 						"description": "Get current cart contents. Creates a new cart if not exists."
@@ -298,7 +191,7 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123",
+								"value": "{{sessionId}}",
 								"description": "Session ID to identify the cart"
 							},
 							{
@@ -311,10 +204,8 @@
 							"raw": "{\n    \"variantId\": 1,\n    \"quantity\": 2\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/cart/items",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart/items",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart", "items"]
 						},
 						"description": "Add a product variant to cart. Validates stock availability."
@@ -327,7 +218,7 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							},
 							{
 								"key": "Content-Type",
@@ -339,10 +230,8 @@
 							"raw": "{\n    \"variantId\": 25,\n    \"quantity\": 1\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/cart/items",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart/items",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart", "items"]
 						},
 						"description": "Add Hoodie Black Dragon to cart"
@@ -355,7 +244,7 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							},
 							{
 								"key": "Content-Type",
@@ -367,10 +256,8 @@
 							"raw": "{\n    \"quantity\": 5\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/cart/items/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart/items/1",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart", "items", "1"]
 						},
 						"description": "Update quantity of cart item. Validates stock availability."
@@ -383,14 +270,12 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/cart/items/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart/items/1",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart", "items", "1"]
 						},
 						"description": "Remove an item from the cart"
@@ -409,14 +294,12 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/checkout/reserve",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/checkout/reserve",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "checkout", "reserve"]
 						},
 						"description": "Reserve inventory for 15 minutes when customer enters checkout page. This locks the items in cart so other customers cannot purchase them."
@@ -429,14 +312,12 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/checkout/reservation",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/checkout/reservation",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "checkout", "reservation"]
 						},
 						"description": "Check if there's an active reservation for this session. Returns remaining time."
@@ -449,14 +330,12 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/checkout/reservation",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/checkout/reservation",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "checkout", "reservation"]
 						},
 						"description": "Cancel the reservation and release the inventory back to available stock."
@@ -464,6 +343,352 @@
 				}
 			],
 			"description": "Inventory reservation endpoints for checkout process"
+		},
+		{
+			"name": "Checkout - Create Order",
+			"item": [
+				{
+					"name": "Create Order - COD",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerName\": \"Nguyễn Văn A\",\n    \"customerEmail\": \"nguyenvana@gmail.com\",\n    \"customerPhone\": \"0901234567\",\n    \"shippingAddress\": \"123 Nguyễn Huệ\",\n    \"shippingCity\": \"TP.HCM\",\n    \"shippingDistrict\": \"Quận 1\",\n    \"paymentMethod\": \"COD\",\n    \"customerNote\": \"Giao giờ hành chính\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/checkout/order",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "checkout", "order"]
+						},
+						"description": "Create order with COD payment method. Sends confirmation email with tracking link."
+					}
+				},
+				{
+					"name": "Create Order - Bank Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Id",
+								"value": "{{sessionId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerName\": \"Trần Minh Hùng\",\n    \"customerEmail\": \"t03612977@gmail.com\",\n    \"customerPhone\": \"0987654321\",\n    \"shippingAddress\": \"456 Lê Lợi\",\n    \"shippingCity\": \"Hà Nội\",\n    \"shippingDistrict\": \"Hoàn Kiếm\",\n    \"paymentMethod\": \"BANK_TRANSFER\",\n    \"customerNote\": \"Chuyển khoản trước khi giao\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/checkout/order",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "checkout", "order"]
+						},
+						"description": "Create order with Bank Transfer payment method. Sends confirmation email with tracking link."
+					}
+				}
+			],
+			"description": "Order creation endpoints"
+		},
+		{
+			"name": "Order Tracking",
+			"item": [
+				{
+					"name": "Track Order by Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/track/{{trackingToken}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "track", "{{trackingToken}}"]
+						},
+						"description": "Track order status using tracking token. NO LOGIN REQUIRED - customer can view order by clicking link in email."
+					}
+				},
+				{
+					"name": "Track Order - Example Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/track/9016d8f2-c5a0-4f6e-a8c0-4b43b763d2c0",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "track", "9016d8f2-c5a0-4f6e-a8c0-4b43b763d2c0"]
+						},
+						"description": "Example tracking with a real token from test order"
+					}
+				}
+			],
+			"description": "Order tracking endpoints - NO authentication required"
+		},
+		{
+			"name": "Admin - Authentication",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "auth", "login"]
+						},
+						"description": "Admin login - creates session. Default credentials: admin/admin123"
+					}
+				},
+				{
+					"name": "Check Admin Session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/auth/check",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "auth", "check"]
+						},
+						"description": "Check if admin session is valid"
+					}
+				},
+				{
+					"name": "Admin Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "auth", "logout"]
+						},
+						"description": "Logout and invalidate admin session"
+					}
+				}
+			],
+			"description": "Admin authentication endpoints"
+		},
+		{
+			"name": "Admin - Order Management",
+			"item": [
+				{
+					"name": "List All Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Items per page"
+								},
+								{
+									"key": "status",
+									"value": "pending",
+									"disabled": true,
+									"description": "Filter by status: pending, confirmed, paid, shipping, completed, cancelled"
+								}
+							]
+						},
+						"description": "List all orders with pagination. Requires admin login."
+					}
+				},
+				{
+					"name": "List Orders - Filter by Status (Pending)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders?status=pending&page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders"],
+							"query": [
+								{
+									"key": "status",
+									"value": "pending"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Filter orders by pending status"
+					}
+				},
+				{
+					"name": "Get Order Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1"]
+						},
+						"description": "Get detailed order information by ID. Requires admin login."
+					}
+				},
+				{
+					"name": "Update Order Status - Confirm Order",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"confirmed\",\n    \"adminNote\": \"Đơn hàng đã được xác nhận\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1", "status"]
+						},
+						"description": "Update order status to confirmed. Requires admin login."
+					}
+				},
+				{
+					"name": "Update Order Status - Mark as Paid",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"paid\",\n    \"adminNote\": \"Đã nhận được thanh toán\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1", "status"]
+						},
+						"description": "Update order status to paid"
+					}
+				},
+				{
+					"name": "Update Order Status - Shipping",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"shipping\",\n    \"adminNote\": \"Đơn hàng đang được giao\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1", "status"]
+						},
+						"description": "Update order status to shipping (warehouse staff marks as shipped)"
+					}
+				},
+				{
+					"name": "Update Order Status - Completed",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\",\n    \"adminNote\": \"Giao hàng thành công\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1", "status"]
+						},
+						"description": "Update order status to completed"
+					}
+				},
+				{
+					"name": "Update Order Status - Cancel Order",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"cancelled\",\n    \"adminNote\": \"Khách hàng yêu cầu hủy đơn\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "orders", "1", "status"]
+						},
+						"description": "Cancel order (customer requested cancellation)"
+					}
+				}
+			],
+			"description": "Admin order management endpoints - requires authentication"
 		},
 		{
 			"name": "Error Scenarios",
@@ -474,65 +699,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/products/999999",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/products/999999",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "products", "999999"]
 						},
 						"description": "Test error handling for non-existent product"
-					}
-				},
-				{
-					"name": "Invalid Price Range",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products?minPrice=500000&maxPrice=300000",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products"],
-							"query": [
-								{
-									"key": "minPrice",
-									"value": "500000",
-									"description": "Min price greater than max price"
-								},
-								{
-									"key": "maxPrice",
-									"value": "300000"
-								}
-							]
-						},
-						"description": "Test validation error when min price > max price"
-					}
-				},
-				{
-					"name": "Invalid Pagination (Negative Page)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/api/products?page=-1&size=10",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "products"],
-							"query": [
-								{
-									"key": "page",
-									"value": "-1",
-									"description": "Invalid negative page number"
-								},
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						},
-						"description": "Test pagination validation error"
 					}
 				},
 				{
@@ -542,7 +713,7 @@
 						"header": [
 							{
 								"key": "X-Session-Id",
-								"value": "test-session-123"
+								"value": "{{sessionId}}"
 							},
 							{
 								"key": "Content-Type",
@@ -551,92 +722,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"variantId\": 36,\n    \"quantity\": 100\n}"
+							"raw": "{\n    \"variantId\": 42,\n    \"quantity\": 100\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/cart/items",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/cart/items",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "cart", "items"]
 						},
-						"description": "Test adding more items than available stock (Limited Edition Hoodie has only 3 in stock)"
-					}
-				},
-				{
-					"name": "Cart - Variant Not Found",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Id",
-								"value": "test-session-123"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"variantId\": 99999,\n    \"quantity\": 1\n}"
-						},
-						"url": {
-							"raw": "http://localhost:8080/api/cart/items",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "cart", "items"]
-						},
-						"description": "Test adding non-existent variant to cart"
-					}
-				},
-				{
-					"name": "Cart - Invalid Input",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Id",
-								"value": "test-session-123"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"variantId\": 1,\n    \"quantity\": 0\n}"
-						},
-						"url": {
-							"raw": "http://localhost:8080/api/cart/items",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "cart", "items"]
-						},
-						"description": "Test invalid quantity (must be >= 1)"
-					}
-				},
-				{
-					"name": "Cart Item Not Found",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "X-Session-Id",
-								"value": "test-session-123"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:8080/api/cart/items/99999",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "cart", "items", "99999"]
-						},
-						"description": "Test deleting non-existent cart item"
+						"description": "Test adding more items than available stock (Limited Edition Hoodie XL has only 1 in stock)"
 					}
 				},
 				{
@@ -650,33 +743,11 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8080/api/checkout/reserve",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
+							"raw": "{{baseUrl}}/api/checkout/reserve",
+							"host": ["{{baseUrl}}"],
 							"path": ["api", "checkout", "reserve"]
 						},
 						"description": "Test reserving inventory with empty or non-existent cart"
-					}
-				},
-				{
-					"name": "Reserve - Last Item Race Condition",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Id",
-								"value": "race-condition-test"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:8080/api/checkout/reserve",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8080",
-							"path": ["api", "checkout", "reserve"]
-						},
-						"description": "Test race condition scenario - when another user already reserved the last item"
 					}
 				}
 			],
@@ -688,6 +759,18 @@
 			"key": "baseUrl",
 			"value": "http://localhost:8080",
 			"type": "string"
+		},
+		{
+			"key": "sessionId",
+			"value": "test-session-123",
+			"type": "string",
+			"description": "Session ID for cart operations - change this to test different sessions"
+		},
+		{
+			"key": "trackingToken",
+			"value": "9016d8f2-c5a0-4f6e-a8c0-4b43b763d2c0",
+			"type": "string",
+			"description": "Example tracking token - replace with actual token from created order"
 		}
 	]
 }
