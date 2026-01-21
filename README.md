@@ -32,8 +32,12 @@ Get-Content src/main/resources/seed-data.sql | docker exec -i 03d20bbdf899 psql 
 ## Cấu hình Email
 Ứng dụng dùng SMTP Gmail. Thiết lập biến môi trường:
 ```
-MAIL_USERNAME=<abc@gmail.com>
-MAIL_PASSWORD=<app_password>
+MAIL_USERNAME=
+MAIL_PASSWORD=
+SEPAY_API_KEY=
+SEPAY_BANK_ACCOUNT=
+SEPAY_BANK_ACCOUNT_NAME=
+SEPAY_BANK_NAME=
 ```
 
 ## Chạy ứng dụng

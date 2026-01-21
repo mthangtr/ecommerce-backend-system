@@ -12,6 +12,7 @@
 | **Shopping Cart** | Thêm/sửa/xóa sản phẩm, kiểm tra tồn kho trước khi thêm vào giỏ | Trong scope Phase 1 |
 | **Inventory Reservation** | Giữ hàng 10-15 phút khi checkout, xử lý "last item" với database lock | Trong scope Phase 1 |
 | **Checkout Flow** | Tạo đơn hàng với thông tin ship, hỗ trợ COD | Trong scope Phase 1 |
+| **SePay Webhook Integration** | Tự động cập nhật trạng thái thanh toán khi nhận webhook | Đã triển khai, có kiểm tra API key (tùy cấu hình) |
 | **Order Tracking** | Tracking đơn hàng qua link không cần đăng nhập, gửi email xác nhận | Trong scope Phase 1 |
 | **Admin Order Management** | Xem danh sách đơn hàng, cập nhật trạng thái đơn và thanh toán | Trong scope Phase 1 |
 
@@ -19,7 +20,6 @@
 
 | Tính năng | Mô tả | Quyết định |
 |-----------|-------|------------|
-| **SePay Webhook Integration** | Tự động cập nhật trạng thái thanh toán khi nhận webhook | **Deferred to Phase 2** - Phase 1 chỉ hỗ trợ COD, admin cập nhật payment status thủ công |
 | **Admin Catalog CRUD** | API tạo/sửa/xóa sản phẩm | Bỏ qua (theo yêu cầu khách hàng - "chưa cần làm phần nhập liệu sản phẩm") |
 
 ### 1.2. Gap Analysis
@@ -30,7 +30,7 @@
 |-------------------|---------------------|---------------------|
 | "Giữ hàng 10-15 phút, người khác không mua được" | Race condition khi 2 người checkout cùng lúc cái cuối cùng | Pessimistic Lock (`findByIdWithLock`) + `reserved_quantity` tracking |
 | "Hết giờ không trả tiền thì nhả ra" | Cần cơ chế tự động giải phóng reservation | Spring Scheduler chạy mỗi 1 phút, quét reservation hết hạn |
-| "SePay tự động biết đơn nào đã trả tiền" | Webhook validation, xử lý duplicate, so khớp số tiền | **Deferred to Phase 2** - Phase 1 sử dụng COD và admin update manual |
+| "SePay tự động biết đơn nào đã trả tiền" | Webhook validation, xử lý duplicate, so khớp số tiền | Webhook `/api/sepay/webhook` + kiểm tra API key (tùy cấu hình), chống duplicate theo `transaction_id`, parse `ORD...` trong nội dung chuyển khoản, so khớp số tiền, cập nhật payment status |
 | "Đừng bắt khách đăng nhập để xem đơn" | Bảo mật tracking token | UUID token trong URL, không lưu session |
 
 #### Quyết định thiết kế quan trọng
@@ -56,14 +56,15 @@
 - Cart với stock validation
 - Inventory reservation với pessimistic lock
 - Checkout flow (COD)
+- SePay webhook auto cập nhật payment status
 - Email notification với tracking link
 - Admin order management
 
 **Phần đã cắt giảm / defer:**
-- **SePay webhook integration** - Đã defer sang Phase 2 theo yêu cầu khách hàng ("nếu không kịp thì để phase sau")
+- **Admin catalog CRUD** - Theo yêu cầu khách hàng, chưa cần trong Phase 1
 
 **Cơ sở đánh giá khả năng hoàn thiện:**
-- Scope Phase 1 tập trung COD và admin xử lý thủ công payment status.
+- Scope Phase 1 tập trung COD + SePay webhook để tự động cập nhật payment status.
 - Luồng inventory được thiết kế theo lock DB, không phụ thuộc hệ thống ngoài.
 
 **Rủi ro & Mitigation:**
@@ -82,127 +83,131 @@
 
 #### 2.1.1. Bảng chính và quan hệ
 
-**products (Sản phẩm)**
+```mermaid
+erDiagram
+    PRODUCTS ||--o{ PRODUCT_VARIANTS : has
+    PRODUCT_VARIANTS ||--o{ CART_ITEMS : in
+    CARTS ||--o{ CART_ITEMS : contains
+    PRODUCT_VARIANTS ||--o{ INVENTORY_RESERVATIONS : reserves
+    ORDERS ||--o{ ORDER_ITEMS : includes
+    PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : for
+    ORDERS ||--o{ PAYMENT_TRANSACTIONS : paid_by
+
+    PRODUCTS {
+        BIGINT id PK
+        VARCHAR name
+        VARCHAR slug
+        TEXT description
+        DECIMAL base_price
+        VARCHAR category
+        BOOLEAN is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    PRODUCT_VARIANTS {
+        BIGINT id PK
+        BIGINT product_id FK
+        VARCHAR sku
+        VARCHAR size
+        VARCHAR color
+        DECIMAL price_adjustment
+        INT stock_quantity
+        INT reserved_quantity
+        BOOLEAN is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    CARTS {
+        UUID id PK
+        VARCHAR session_id
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    CART_ITEMS {
+        BIGINT id PK
+        UUID cart_id FK
+        BIGINT variant_id FK
+        INT quantity
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    INVENTORY_RESERVATIONS {
+        BIGINT id PK
+        BIGINT variant_id FK
+        INT quantity
+        VARCHAR session_id
+        BIGINT reserved_for_order_id
+        TIMESTAMP reserved_at
+        TIMESTAMP expires_at
+        VARCHAR status
+    }
+
+    ORDERS {
+        BIGINT id PK
+        VARCHAR order_number
+        UUID tracking_token
+        VARCHAR customer_name
+        VARCHAR customer_email
+        VARCHAR customer_phone
+        VARCHAR shipping_address
+        VARCHAR shipping_city
+        VARCHAR shipping_district
+        VARCHAR payment_method
+        VARCHAR payment_status
+        DECIMAL subtotal
+        DECIMAL shipping_fee
+        DECIMAL total_amount
+        VARCHAR status
+        TEXT customer_note
+        TEXT admin_note
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP confirmed_at
+        TIMESTAMP paid_at
+        TIMESTAMP shipped_at
+        TIMESTAMP completed_at
+        TIMESTAMP cancelled_at
+    }
+
+    ORDER_ITEMS {
+        BIGINT id PK
+        BIGINT order_id FK
+        BIGINT variant_id FK
+        VARCHAR product_name
+        VARCHAR variant_sku
+        VARCHAR variant_size
+        VARCHAR variant_color
+        DECIMAL unit_price
+        INT quantity
+        DECIMAL subtotal
+    }
+
+    PAYMENT_TRANSACTIONS {
+        BIGINT id PK
+        BIGINT order_id FK
+        VARCHAR transaction_id
+        DECIMAL amount
+        VARCHAR payment_method
+        VARCHAR status
+        TEXT gateway_response
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    ADMIN_USERS {
+        BIGINT id PK
+        VARCHAR username
+        VARCHAR password_hash
+        VARCHAR full_name
+        BOOLEAN is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
 ```
-- id (PK, BIGINT)
-- name (VARCHAR, NOT NULL)
-- slug (VARCHAR, UNIQUE)
-- description (TEXT)
-- base_price (DECIMAL)
-- category (VARCHAR) - 'ao-thun', 'hoodie', 'quan', etc.
-- is_active (BOOLEAN)
-- created_at, updated_at (TIMESTAMP)
-```
-
-**product_variants (SKU - Biến thể sản phẩm)**
-```
-- id (PK, BIGINT)
-- product_id (FK -> products.id)
-- sku (VARCHAR, UNIQUE, NOT NULL) - mã SKU duy nhất
-- size (VARCHAR) - 'M', 'L', 'XL'
-- color (VARCHAR) - 'Đen', 'Trắng'
-- price_adjustment (DECIMAL) - thêm/bớt giá so với base_price
-- stock_quantity (INT, NOT NULL) - tổng tồn kho
-- reserved_quantity (INT, NOT NULL, DEFAULT 0) - số lượng đang được giữ
-- is_active (BOOLEAN)
-- created_at, updated_at (TIMESTAMP)
-```
-
-**Quan hệ**: `products` 1-N `product_variants`
-
----
-
-**carts (Giỏ hàng)**
-```
-- id (PK, UUID)
-- session_id (VARCHAR, UNIQUE, NOT NULL) - client-generated session
-- created_at, updated_at (TIMESTAMP)
-```
-
-**cart_items (Item trong giỏ)**
-```
-- id (PK, BIGINT)
-- cart_id (FK -> carts.id)
-- variant_id (FK -> product_variants.id)
-- quantity (INT, NOT NULL)
-- created_at, updated_at (TIMESTAMP)
-```
-
-**Quan hệ**: `carts` 1-N `cart_items`, `product_variants` 1-N `cart_items`
-
----
-
-**inventory_reservations (Giữ hàng tạm thời)**
-```
-- id (PK, BIGINT)
-- variant_id (FK -> product_variants.id)
-- quantity (INT, NOT NULL)
-- session_id (VARCHAR, NOT NULL)
-- reserved_for_order_id (BIGINT, nullable) - link tới order khi complete
-- reserved_at (TIMESTAMP)
-- expires_at (TIMESTAMP, NOT NULL) - thời điểm hết hạn
-- status (VARCHAR) - 'active', 'completed', 'expired', 'cancelled'
-```
-
-**Quan hệ**: `product_variants` 1-N `inventory_reservations`
-
----
-
-**orders (Đơn hàng)**
-```
-- id (PK, BIGINT)
-- order_number (VARCHAR, UNIQUE, NOT NULL) - 'ORD-{timestamp}'
-- tracking_token (UUID, UNIQUE, NOT NULL) - token để tracking không cần login
-- customer_name, customer_email, customer_phone (VARCHAR, NOT NULL)
-- shipping_address, shipping_city, shipping_district (VARCHAR)
-- payment_method (VARCHAR) - 'COD', 'SEPAY'
-- payment_status (VARCHAR) - 'pending', 'paid', 'failed'
-- subtotal, shipping_fee, total_amount (DECIMAL)
-- status (VARCHAR) - 'pending', 'confirmed', 'processing', 'shipping', 'completed', 'cancelled'
-- customer_note, admin_note (TEXT)
-- created_at, updated_at, confirmed_at, paid_at, shipped_at, completed_at, cancelled_at (TIMESTAMP)
-```
-
-**order_items (Sản phẩm trong đơn hàng)**
-```
-- id (PK, BIGINT)
-- order_id (FK -> orders.id)
-- variant_id (FK -> product_variants.id)
-- product_name, variant_sku, variant_size, variant_color (VARCHAR) - snapshot
-- unit_price, quantity, subtotal (DECIMAL)
-```
-
-**Quan hệ**: `orders` 1-N `order_items`
-
----
-
-**payment_transactions (Giao dịch thanh toán)**
-```
-- id (PK, BIGINT)
-- order_id (FK -> orders.id)
-- transaction_id (VARCHAR, UNIQUE) - ID từ SePay
-- amount (DECIMAL)
-- payment_method (VARCHAR) - 'SEPAY'
-- status (VARCHAR) - 'pending', 'success', 'failed'
-- gateway_response (TEXT) - raw webhook payload
-- created_at, updated_at (TIMESTAMP)
-```
-
-**Quan hệ**: `orders` 1-N `payment_transactions`
-
----
-
-**admin_users (Tài khoản admin)**
-```
-- id (PK, BIGINT)
-- username (VARCHAR, UNIQUE, NOT NULL)
-- password_hash (VARCHAR, NOT NULL) - BCrypt hash
-- full_name (VARCHAR)
-- is_active (BOOLEAN)
-- created_at, updated_at (TIMESTAMP)
-```
-
----
 
 #### 2.1.2. Giải thích các quyết định thiết kế quan trọng
 
@@ -361,6 +366,7 @@ idx_orders_tracking (tracking_token)
 | DELETE | `/api/checkout/reservation` | Hủy reservation |
 | POST | `/api/checkout/order` | Tạo đơn hàng |
 | GET | `/api/orders/track/{token}` | Tracking đơn hàng (UUID token) |
+| POST | `/api/sepay/webhook` | Nhận webhook từ SePay, cập nhật payment status |
 
 **Admin APIs (Cần session authentication)**
 
@@ -425,15 +431,38 @@ sequenceDiagram
 
 ---
 
+**Diagram 2: SePay Webhook Payment**
+
+```mermaid
+sequenceDiagram
+    participant SePay
+    participant API as SepayWebhookController
+    participant WebhookSvc as SepayWebhookService
+    participant OrderSvc as OrderService
+    participant DB as Database
+    participant Mail as EmailService
+
+    SePay->>API: POST /api/sepay/webhook (payload + api_key)
+    API->>WebhookSvc: processWebhook(payload, apiKey)
+    WebhookSvc->>WebhookSvc: verify API key (nếu bật)
+    WebhookSvc->>WebhookSvc: kiểm tra duplicate transaction
+    WebhookSvc->>WebhookSvc: parse order_number từ nội dung chuyển khoản
+    WebhookSvc->>OrderSvc: getOrderByOrderNumber(...)
+    WebhookSvc->>DB: lưu payment_transaction
+    WebhookSvc->>OrderSvc: updatePaymentStatus(paid)
+    WebhookSvc->>Mail: gửi email xác nhận
+```
+
 ## 3. KẾT LUẬN
 
 ### Tóm tắt kết quả Phase 1
 
 | Thành phần | Hoàn thành | Ghi chú |
 |-----------|-----------|---------|
-| Must-have features | **100%** | Catalog, Cart, Inventory, Checkout (COD), Tracking, Admin |
-| Nice-to-have (SePay) | **Deferred to Phase 2** | Theo yêu cầu khách hàng - chỉ COD trong Phase 1 |
+| Must-have features | **100%** | Catalog, Cart, Inventory, Checkout (COD + SePay), Tracking, Admin |
+| SePay webhook | **100%** | Tự động cập nhật payment status qua webhook |
+| Nice-to-have | **Deferred** | Admin Catalog CRUD |
 | Database design | **100%** | Thiết kế bảng & quan hệ đầy đủ cho Phase 1 |
-| API endpoints | **100%** | 17 APIs (11 public + 6 admin) |
+| API endpoints | **100%** | 18 APIs (12 public + 6 admin) |
 | Email Service | **100%** | SMTP Gmail, gửi tracking link |
 | Technical docs | **100%** | Report này + sequence diagrams |
