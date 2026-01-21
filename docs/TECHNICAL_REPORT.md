@@ -80,7 +80,7 @@
 
 ### 2.1. Database Design (ERD)
 
-#### Bảng chính và quan hệ
+#### 2.1.1. Bảng chính và quan hệ
 
 **products (Sản phẩm)**
 ```
@@ -204,11 +204,141 @@
 
 ---
 
-#### Thiết kế đặc biệt cho Inventory Management
+#### 2.1.2. Giải thích các quyết định thiết kế quan trọng
 
-**Lý do cần `reserved_quantity` và lock**
-- Tránh oversell khi nhiều người checkout cùng lúc.
-- Dùng `PESSIMISTIC_WRITE` để đảm bảo chỉ một luồng cập nhật tồn kho tại một thời điểm.
+**1. Tại sao tách `products` và `product_variants`?**
+
+**Vấn đề nếu gộp chung:**
+- Áo Thun Rồng có 6 variants (3 size × 2 màu) = 6 rows trùng tên/mô tả
+- Thay đổi thông tin sản phẩm phải update nhiều rows
+- Khó quản lý khi scale
+
+**Giải pháp:**
+- `products`: Thông tin chung (tên, mô tả, category, base_price)
+- `product_variants`: SKU cụ thể (size, màu, price_adjustment, stock)
+
+**Ví dụ thực tế:**
+```
+Product: Áo Thun Rồng (base_price: 299,000đ)
+├─ Variant: Size M - Đen (SKU: AO-RONG-M-DEN, adjustment: 0)
+├─ Variant: Size L - Đen (SKU: AO-RONG-L-DEN, adjustment: 20,000)
+└─ Variant: Size XL - Trắng (SKU: AO-RONG-XL-TRANG, adjustment: 30,000)
+```
+
+---
+
+**2. Tại sao cần `reserved_quantity` riêng?**
+
+**Kịch bản race condition:**
+```
+Áo size L còn 1 cái:
+14:00:00 - Khách A checkout (đang điền form)
+14:00:01 - Khách B checkout (đang điền form)
+14:00:30 - Khách A đặt hàng → Success
+14:00:31 - Khách B đặt hàng → Success (OVERSELL!)
+```
+
+**Giải pháp với reservation:**
+```sql
+-- Available stock = stock_quantity - reserved_quantity
+stock_quantity: 10
+reserved_quantity: 3  (3 người đang checkout)
+available: 7          (còn bán được)
+
+-- Khi checkout: tăng reserved, tạo reservation (expires_at = +15 phút)
+-- Khi đặt hàng: giảm stock + reserved, mark reservation completed
+-- Khi hết hạn: giảm reserved, mark reservation expired (Scheduler tự động)
+```
+
+**Lock mechanism:**
+- Dùng `@Lock(PESSIMISTIC_WRITE)` khi reserve/complete để tránh race condition
+- Chỉ 1 transaction cập nhật tồn kho tại một thời điểm
+
+---
+
+**3. Tại sao cart dùng `session_id` thay vì `user_id`?**
+
+**Requirement:** "Đừng bắt khách đăng nhập" - Guest checkout
+
+**Flow:**
+1. Client tạo UUID ngẫu nhiên, lưu `localStorage`, gửi qua header `X-Session-Id`
+2. Backend tìm/tạo cart theo `session_id`
+3. Giỏ hàng persist cho đến khi khách đặt hàng hoặc hết hạn
+
+**Lợi ích:**
+- Không cần authentication
+- Giỏ hàng vẫn còn khi khách quay lại (trong vài ngày)
+- Dễ dàng mở rộng: Sau này có user system, chỉ cần thêm `user_id` vào bảng `carts`
+
+---
+
+**4. Tại sao order tracking dùng `tracking_token` (UUID)?**
+
+**Vấn đề nếu dùng order_id:**
+```
+URL: /track/12345 → Khách có thể đoán /track/12346, /track/12347
+→ Xem được đơn hàng của người khác (Data leak)
+```
+
+**Giải pháp:**
+```
+tracking_token: UUID (128-bit random)
+URL: /track/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+→ Không thể đoán được
+```
+
+**Email gửi khách:**
+```
+Mã đơn: ORD-20250108-00001
+Tracking: https://shop.com/track/a1b2c3d4-...
+→ Chỉ người có link mới xem được
+```
+
+---
+
+**5. Tại sao snapshot product info vào `order_items`?**
+
+**Kịch bản:**
+```
+Ngày 1: Khách mua "Áo Thun Rồng" - 299,000đ
+Ngày 5: Admin đổi giá → 350,000đ
+Ngày 10: Khách gọi: "Sao đơn em giá 350k, em mua lúc 299k mà?"
+```
+
+**Giải pháp:**
+- Lưu snapshot: `product_name`, `variant_sku`, `variant_size`, `variant_color`, `unit_price`
+- Giá trong đơn hàng **không bao giờ thay đổi**
+- Sản phẩm bị xóa → đơn hàng vẫn hiển thị đầy đủ
+
+**Lợi ích:**
+- Audit trail hoàn chỉnh
+- Legal compliance (cần cho kế toán, thuế)
+- Tránh tranh chấp với khách hàng
+
+---
+
+**6. Indexes và optimization**
+
+**Indexes quan trọng:**
+```sql
+-- Fast product listing/filtering
+idx_products_category, idx_products_slug
+
+-- Cart lookup by session
+idx_carts_session
+
+-- Reservation cleanup scheduler
+idx_reservations_expires (expires_at, status)
+
+-- Admin order management
+idx_orders_status (status, created_at)
+idx_orders_tracking (tracking_token)
+```
+
+**Constraints:**
+- `UNIQUE(session_id)` trên carts: Mỗi session 1 giỏ hàng
+- `UNIQUE(tracking_token)` trên orders: Bảo mật tracking
+- `UNIQUE(sku)` trên product_variants: Không trùng SKU
 
 ---
 
@@ -292,26 +422,6 @@ sequenceDiagram
         FE-->>User: Hiển thị reservation hết hạn
     end
 ```
-
----
-
-#### 2.2.3. Giải thích các quyết định thiết kế quan trọng
-
-**1. Tại sao dùng Pessimistic Lock thay vì Optimistic Lock?**
-
-Pessimistic Lock phù hợp với bài toán "last item" có contention cao, tránh retry nhiều lần và rủi ro oversell.
-
----
-
-**2. Tại sao Scheduler 1 phút thay vì WebSocket/Event-driven?**
-
-Scheduler 1 phút đơn giản, restart-safe; độ trễ nhỏ so với reservation 10–15 phút.
-
----
-
-**3. Tại sao snapshot product info vào order_items?**
-
-Lịch sử đơn hàng không thay đổi khi sản phẩm đổi tên/giá.
 
 ---
 
